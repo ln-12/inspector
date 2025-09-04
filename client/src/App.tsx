@@ -100,6 +100,18 @@ const App = () => {
   const [args, setArgs] = useState<string>(getInitialArgs);
 
   const [sseUrl, setSseUrl] = useState<string>(getInitialSseUrl);
+  const [savedSseUrls, setSavedSseUrls] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem("savedSseUrls");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed))
+          return parsed.filter((v) => typeof v === "string");
+      }
+    } catch {}
+    const initial = getInitialSseUrl();
+    return initial ? [initial] : [];
+  });
   const [transportType, setTransportType] = useState<
     "stdio" | "sse" | "streamable-http"
   >(getInitialTransportType);
@@ -298,6 +310,12 @@ const App = () => {
   }, [sseUrl]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem("savedSseUrls", JSON.stringify(savedSseUrls));
+    } catch {}
+  }, [savedSseUrls]);
+
+  useEffect(() => {
     localStorage.setItem("lastTransportType", transportType);
   }, [transportType]);
 
@@ -452,6 +470,11 @@ const App = () => {
         }
         if (data.defaultServerUrl) {
           setSseUrl(data.defaultServerUrl);
+          setSavedSseUrls((prev) => {
+            const set = new Set(prev);
+            set.add(data.defaultServerUrl);
+            return Array.from(set);
+          });
         }
       })
       .catch((error) =>
@@ -698,7 +721,11 @@ const App = () => {
     cacheToolOutputSchemas(response.tools);
   };
 
-  const callTool = async (name: string, params: Record<string, unknown>) => {
+  const callTool = async (
+    name: string,
+    params: Record<string, unknown>,
+    meta?: Record<string, unknown>,
+  ) => {
     lastToolCallOriginTabRef.current = currentTabRef.current;
 
     try {
@@ -710,6 +737,7 @@ const App = () => {
             arguments: params,
             _meta: {
               progressToken: progressTokenRef.current++,
+              ...(meta ?? {}),
             },
           },
         },
@@ -801,6 +829,22 @@ const App = () => {
           setArgs={setArgs}
           sseUrl={sseUrl}
           setSseUrl={setSseUrl}
+          savedSseUrls={savedSseUrls}
+          addSseUrl={(url: string) => {
+            const trimmed = url.trim();
+            if (!trimmed) return;
+            setSavedSseUrls((prev) => {
+              const set = new Set(prev);
+              set.add(trimmed);
+              return Array.from(set);
+            });
+          }}
+          removeSseUrl={(url: string) => {
+            setSavedSseUrls((prev) => prev.filter((u) => u !== url));
+            if (sseUrl === url) {
+              setSseUrl("");
+            }
+          }}
           env={env}
           setEnv={setEnv}
           config={config}
@@ -1008,10 +1052,14 @@ const App = () => {
                         setNextToolCursor(undefined);
                         cacheToolOutputSchemas([]);
                       }}
-                      callTool={async (name, params) => {
+                      callTool={async (
+                        name: string,
+                        params: Record<string, unknown>,
+                        meta?: Record<string, unknown>,
+                      ) => {
                         clearError("tools");
                         setToolResult(null);
-                        await callTool(name, params);
+                        await callTool(name, params, meta);
                       }}
                       selectedTool={selectedTool}
                       setSelectedTool={(tool) => {
