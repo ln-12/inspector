@@ -212,6 +212,7 @@ const App = () => {
     serverCapabilities,
     mcpClient,
     requestHistory,
+    clearRequestHistory,
     makeRequest,
     sendNotification,
     handleCompletion,
@@ -764,6 +765,10 @@ const App = () => {
     await sendNotification({ method: "notifications/roots/list_changed" });
   };
 
+  const handleClearNotifications = () => {
+    setNotifications([]);
+  };
+
   const sendLogLevelRequest = async (level: LoggingLevel) => {
     await sendMCPRequest(
       {
@@ -1150,6 +1155,8 @@ const App = () => {
             <HistoryAndNotifications
               requestHistory={requestHistory}
               serverNotifications={notifications}
+              onClearHistory={clearRequestHistory}
+              onClearNotifications={handleClearNotifications}
             />
           </div>
         </div>

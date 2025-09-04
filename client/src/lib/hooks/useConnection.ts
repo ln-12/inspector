@@ -653,11 +653,16 @@ export function useConnection({
     setServerCapabilities(null);
   };
 
+  const clearRequestHistory = () => {
+    setRequestHistory([]);
+  };
+
   return {
     connectionStatus,
     serverCapabilities,
     mcpClient,
     requestHistory,
+    clearRequestHistory,
     makeRequest,
     sendNotification,
     handleCompletion,
