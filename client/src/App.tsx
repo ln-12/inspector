@@ -210,7 +210,7 @@ const App = () => {
     useState<AuthDebuggerState>(EMPTY_DEBUGGER_STATE);
 
   // Meta data state - persisted in localStorage
-  const [metaData, setMetaData] = useState<Record<string, string>>(() => {
+  const [metaData, setMetaData] = useState<Record<string, unknown>>(() => {
     const savedMetaData = localStorage.getItem("lastMetaData");
     if (savedMetaData) {
       try {
@@ -226,7 +226,7 @@ const App = () => {
     setAuthState((prev) => ({ ...prev, ...updates }));
   };
 
-  const handleMetaDataChange = (newMetaData: Record<string, string>) => {
+  const handleMetaDataChange = (newMetaData: Record<string, unknown>) => {
     setMetaData(newMetaData);
     localStorage.setItem("lastMetaData", JSON.stringify(newMetaData));
   };

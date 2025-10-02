@@ -79,7 +79,7 @@ interface UseConnectionOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRoots?: () => any[];
   defaultLoggingLevel?: LoggingLevel;
-  metaData?: Record<string, string>;
+  metaData?: Record<string, unknown>;
 }
 
 export function useConnection({
