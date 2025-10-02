@@ -40,6 +40,7 @@ import {
 import CustomHeaders from "./CustomHeaders";
 import { CustomHeaders as CustomHeadersType } from "@/lib/types/customHeaders";
 import { useToast } from "../lib/hooks/useToast";
+import { Combobox } from "@/components/ui/combobox";
 
 interface SidebarProps {
   connectionStatus: ConnectionStatus;
@@ -51,6 +52,9 @@ interface SidebarProps {
   setArgs: (args: string) => void;
   sseUrl: string;
   setSseUrl: (url: string) => void;
+  savedSseUrls: string[];
+  addSseUrl: (url: string) => void;
+  removeSseUrl: (url: string) => void;
   env: Record<string, string>;
   setEnv: (env: Record<string, string>) => void;
   // Custom headers support
@@ -81,6 +85,9 @@ const Sidebar = ({
   setArgs,
   sseUrl,
   setSseUrl,
+  savedSseUrls,
+  addSseUrl,
+  removeSseUrl,
   env,
   setEnv,
   customHeaders,
@@ -296,28 +303,24 @@ const Sidebar = ({
                 <label className="text-sm font-medium" htmlFor="sse-url-input">
                   URL
                 </label>
-                {sseUrl ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Input
-                        id="sse-url-input"
-                        placeholder="URL"
-                        value={sseUrl}
-                        onChange={(e) => setSseUrl(e.target.value)}
-                        className="font-mono"
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>{sseUrl}</TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Input
-                    id="sse-url-input"
-                    placeholder="URL"
-                    value={sseUrl}
-                    onChange={(e) => setSseUrl(e.target.value)}
-                    className="font-mono"
-                  />
-                )}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Combobox
+                      id="sse-url-input"
+                      value={sseUrl}
+                      onChange={(val: string) => setSseUrl(val)}
+                      onInputChange={(_val: string) => {}}
+                      options={savedSseUrls}
+                      onRemoveOption={(val: string) => removeSseUrl(val)}
+                      onConfirmInput={(val: string) => addSseUrl(val)}
+                      onClose={(val: string) => {
+                        if (val && val.trim()) addSseUrl(val);
+                      }}
+                      placeholder="Select or type URL"
+                      emptyMessage="No saved URLs"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Connection Type switch - only visible for non-STDIO transport types */}
